@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Monaco Editor JSONata Mode</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8" >
+    <link rel="stylesheet" data-name="vs/editor/editor.main" href="node_modules/monaco-editor/min/vs/editor/editor.main.css">
+</head>
+<body>
+
+<h2>Monaco Editor JSONata Mode</h2>
+<button id="updateJsonBtn">Update JSON Data</button>
+<div id="container" style="width:800px;height:600px;border:1px solid grey; margin-top: 10px;"></div>
+
+<script>
+    var require = { paths: { 
+        'vs': 'node_modules/monaco-editor/min/vs',
+        'jsonata': 'node_modules/jsonata/jsonata.min' 
+    } };
+</script>
+<script src="node_modules/monaco-editor/min/vs/loader.js"></script>
+
+<script>
+    require(['vs/editor/editor.main', 'dist/index'], function(monaco, jsonataMode) {
+        const initialData = {
+            "product": {
+                "title": "Example Product",
+                "price": 19.99,
+                "features": ["feature1", "feature2"]
+            },
+            "user": {
+                "name": "John Doe",
+                "email": "john.doe@example.com"
+            }
+        };
+
+        const newData = {
+            "page": {
+                "title": "New Page",
+                "author": "Jane Smith"
+            },
+            "site": {
+                "name": "My Awesome Site"
+            }
+        };
+
+        const jsonataUpdater = jsonataMode.registerJSONataLanguage(monaco, initialData);
+
+        monaco.editor.create(document.getElementById('container'), {
+            value: [
+                'product.title',
+                '/* You can use JSONata functions */',
+                '$uppercase(user.name)',
+                'product.features[0]',
+                'site.name'
+            ].join('\n'),
+            language: 'jsonata-json'
+        });
+
+        document.getElementById('updateJsonBtn').addEventListener('click', () => {
+            jsonataUpdater.update(newData); 
+            alert('JSON data has been updated. Autocomplete and validation will now use the new data.');
+        });
+    });
+</script>
+
+</body>
+</html>
