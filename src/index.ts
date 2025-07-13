@@ -177,22 +177,29 @@ export function registerJSONataLanguage(monacoNs: typeof monaco, initialSampleDa
 
     monacoNs.languages.registerHoverProvider(languageId, {
         provideHover: (model, position) => {
-            const word = model.getWordAtPosition(position);
-            if (!word) return;
+            const lineContent = model.getLineContent(position.lineNumber);
+            const pathRegex = /([a-zA-Z_][\w\.]*)/g;
+            let match;
+            while ((match = pathRegex.exec(lineContent)) !== null) {
+                const variablePath = match[0];
+                const startIndex = match.index + 1;
+                const endIndex = startIndex + variablePath.length;
 
-            const range = new monacoNs.Range(position.lineNumber, word.startColumn, position.lineNumber, word.endColumn);
-            const variablePath = word.word;
-            
-            const value = getObjectFromPath(currentSampleData, variablePath);
-            if (value !== undefined) {
-                const valueString = typeof value === 'object' ? JSON.stringify(value, null, 2) : value.toString();
-                return {
-                    range: range,
-                    contents: [
-                        { value: `**${variablePath}**` },
-                        { value: '```' + (typeof value) + '\n' + valueString + '\n```' }
-                    ]
-                };
+                if (position.column >= startIndex && position.column <= endIndex) {
+                    const value = getObjectFromPath(currentSampleData, variablePath);
+                    if (value !== undefined) {
+                        const valueString = typeof value === 'object' ? JSON.stringify(value, null, 2) : value.toString();
+                        const range = new monacoNs.Range(position.lineNumber, startIndex, position.lineNumber, endIndex);
+
+                        return {
+                            range: range,
+                            contents: [
+                                { value: `**${variablePath}**` },
+                                { value: '```' + (typeof value) + '\n' + valueString + '\n```' }
+                            ]
+                        };
+                    }
+                }
             }
             return;
         }
