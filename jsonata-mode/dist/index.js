@@ -20,31 +20,27 @@ define(["require", "exports", "jsonata"], function (require, exports, jsonata_1)
     }
     function validate(model, monacoNs, sampleData) {
         const markers = [];
-        const code = model.getValue();
-        try {
-            // This will throw an error for syntax issues
-            (0, jsonata_1.default)(code);
-        }
-        catch (e) {
-            markers.push({
-                message: e.message,
-                severity: monacoNs.MarkerSeverity.Error,
-                startLineNumber: e.position ? model.getPositionAt(e.position).lineNumber : 1,
-                startColumn: e.position ? model.getPositionAt(e.position).column : 1,
-                endLineNumber: e.position ? model.getPositionAt(e.position).lineNumber : 1,
-                endColumn: e.position ? model.getPositionAt(e.position).column + 1 : 2,
-            });
-        }
-        // Basic validation for variable paths (does not cover all JSONata features)
         const lines = model.getLinesContent();
         lines.forEach((line, i) => {
-            const identifiers = line.matchAll(/[a-zA-Z_][\w\.]*/g);
-            for (const match of identifiers) {
-                const expression = match[0];
-                if (expression && getObjectFromPath(sampleData, expression) === undefined && !expression.startsWith('$')) {
-                    // A more sophisticated check is needed to avoid flagging functions or parts of valid expressions.
-                    // This is a placeholder for more advanced validation.
-                }
+            const trimmedLine = line.trim();
+            if (trimmedLine === '' || trimmedLine.startsWith('/*')) {
+                return; // Ignore empty lines and comments
+            }
+            try {
+                // This will throw an error for syntax issues
+                (0, jsonata_1.default)(trimmedLine);
+            }
+            catch (e) {
+                const startColumn = line.indexOf(trimmedLine) + (e.position || 0) + 1;
+                const endColumn = startColumn + (e.token ? e.token.length : 1);
+                markers.push({
+                    message: e.message,
+                    severity: monacoNs.MarkerSeverity.Error,
+                    startLineNumber: i + 1,
+                    startColumn: startColumn,
+                    endLineNumber: i + 1,
+                    endColumn: endColumn,
+                });
             }
         });
         monacoNs.editor.setModelMarkers(model, 'jsonata-json', markers);
