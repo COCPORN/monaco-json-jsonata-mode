@@ -9,12 +9,16 @@
     "start": "http-server"
   },
   "keywords": ["jsonata", "json", "monaco"],
-  "author": "Lars de Bruijn",
+  "author": "COCPORN",
   "license": "ISC",
   "packageManager": "pnpm@10.12.4",
   "dependencies": {
     "monaco-editor": "^0.52.2",
     "jsonata": "^2.0.3"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/COCPORN/monaco-json-jsonata-mode.git"
   },
   "devDependencies": {
     "http-server": "^14.1.1",
